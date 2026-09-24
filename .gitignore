@@ -1,0 +1,55 @@
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ---------- Virtual environments ----------
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# ---------- Jupyter ----------
+.ipynb_checkpoints/
+*.ipynb
+
+# ---------- IDE / editor ----------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ---------- OS ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------- Secrets ----------
+.env
+.env.*
+!.env.example
+kaggle.json
+.kaggle/
+
+# ---------- Project artifacts ----------
+artifacts/*.pkl
+artifacts/*.json
+
+# ---------- Data ----------
+data/
+m5_daily/
+m5-forecasting-accuracy.zip
+
+# ---------- Caches ----------
+*.log
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
