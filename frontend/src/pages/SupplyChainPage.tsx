@@ -1,18 +1,67 @@
 import React, { useState } from 'react';
+import { CATALOG_PRODUCTS } from '../services/api';
 import {
   DollarSign,
   Truck,
   Activity,
+  Tag,
 } from 'lucide-react';
 
 export const SupplyChainPage: React.FC = () => {
-  const [promoDiscount, setPromoDiscount] = useState<number>(25);
+  const [selectedProductId, setSelectedProductId] = useState<string>('FOODS_1_001');
+  const [promoDiscount, setPromoDiscount] = useState<number>(20);
   const [showBullwhipMore, setShowBullwhipMore] = useState<boolean>(false);
   const [showPromoMore, setShowPromoMore] = useState<boolean>(false);
 
-  const volumeUplift = Math.round(promoDiscount * 1.92);
-  const cannibalizationRate = 74;
-  const netIncrementalAisleRevenue = Math.max(0, Math.round(volumeUplift * (1 - cannibalizationRate / 100)));
+  const selectedProd = CATALOG_PRODUCTS.find((p) => p.id === selectedProductId) || CATALOG_PRODUCTS[0];
+
+  // Category price elasticity:
+  // - Groceries/Foods: highly elastic (-1.65), shoppers notice price cuts immediately
+  // - Household essentials: moderately elastic (-1.20)
+  // - Hobbies: less elastic (-0.95), demand is niche / hobby driven
+  const elasticityMap = {
+    FOODS: 1.65,
+    HOUSEHOLD: 1.20,
+    HOBBIES: 0.95,
+  };
+  const elasticity = elasticityMap[selectedProd.category] || 1.35;
+
+  // Cannibalization rate across category aisles:
+  // Groceries have high store-brand/alternative substitution (74%)
+  // Household has 52% substitution
+  // Hobbies have low substitution (28%)
+  const cannibalizationMap = {
+    FOODS: 74,
+    HOUSEHOLD: 52,
+    HOBBIES: 28,
+  };
+  const cannibalizationRate = cannibalizationMap[selectedProd.category] || 50;
+
+  // Real calculations:
+  // Volume Lift % = discount % * elasticity
+  const volumeUplift = Math.round(promoDiscount * elasticity);
+  
+  // Baseline monthly metrics
+  const baseMonthlyUnits = selectedProd.avgMonthlySales;
+  const basePrice = selectedProd.basePrice;
+  const promoPrice = Math.round(basePrice * (1 - promoDiscount / 100) * 100) / 100;
+  
+  // Promoted units
+  const promoUnits = Math.round(baseMonthlyUnits * (1 + volumeUplift / 100));
+  const additionalUnits = promoUnits - baseMonthlyUnits;
+  
+  // Cannibalized units from neighbor aisle SKUs
+  const cannibalizedUnits = Math.round(additionalUnits * (cannibalizationRate / 100));
+  const netNewUnits = additionalUnits - cannibalizedUnits;
+  
+  // Net Aisle Volume Lift %
+  const netAisleLiftPercent = Math.round((netNewUnits / baseMonthlyUnits) * 100);
+
+  // Revenue comparison
+  const baseRevenue = Math.round(baseMonthlyUnits * basePrice);
+  const promoRevenue = Math.round(promoUnits * promoPrice);
+  const revenueDifference = promoRevenue - baseRevenue;
+  const revenueDiffPercent = baseRevenue > 0 ? Math.round((revenueDifference / baseRevenue) * 100) : 0;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', minWidth: 0 }}>
@@ -170,13 +219,16 @@ export const SupplyChainPage: React.FC = () => {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '1.25rem' }}>
         
         {/* Discount Simulator */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
           <div>
-            <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-main)' }}>
-              Discount Calculator
-            </h3>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              Estimate sales boost when lowering prices.
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+              <Tag size={16} color="var(--accent-blue)" />
+              <h3 style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                Retail Promotion & Discount Calculator
+              </h3>
+            </div>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
+              Simulate price markdowns and evaluate category cannibalization risk.
               <button
                 onClick={() => setShowPromoMore(!showPromoMore)}
                 className="btn-readmore"
@@ -188,23 +240,61 @@ export const SupplyChainPage: React.FC = () => {
 
           {showPromoMore && (
             <div style={{
-              padding: '0.65rem',
+              padding: '0.75rem',
               background: 'var(--bg-surface-subtle)',
-              borderRadius: '4px',
+              borderRadius: '6px',
+              border: '1px solid var(--border-subtle)',
               fontSize: '0.75rem',
               color: 'var(--text-secondary)',
-              lineHeight: 1.4,
+              lineHeight: 1.5,
             }}>
-              When a store puts an item on a 25% discount, unit volume jumps +48%. However, 74% of that surge comes from customers who would have bought a different brand in the same aisle. Total aisle profits often stay flat unless category mix is monitored.
+              <strong>Understanding Price Elasticity & Cannibalization:</strong>
+              <div style={{ marginTop: '0.25rem' }}>
+                • <strong>Groceries (Elasticity: 1.65×):</strong> Customers respond aggressively to discounts, but up to 74% of the volume lift substitutes adjacent brands in the same aisle rather than creating net new shoppers.
+              </div>
+              <div>
+                • <strong>Household Goods (Elasticity: 1.20×):</strong> Moderate response with ~52% category substitution.
+              </div>
+              <div>
+                • <strong>Hobbies & Leisure (Elasticity: 0.95×):</strong> Less price sensitive; promotions generate primarily genuine incremental interest.
+              </div>
             </div>
           )}
 
+          {/* Product Selector */}
+          <div className="form-group">
+            <label className="form-label" style={{ fontWeight: 600 }}>
+              Select Item to Discount
+            </label>
+            <select
+              className="form-select"
+              value={selectedProductId}
+              onChange={(e) => setSelectedProductId(e.target.value)}
+              style={{ fontSize: '0.8125rem' }}
+            >
+              {CATALOG_PRODUCTS.map((prod) => (
+                <option key={prod.id} value={prod.id}>
+                  {prod.name} (${prod.basePrice.toFixed(2)}) — {prod.category}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Discount Slider */}
           <div className="form-group">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <label className="form-label">Test a Promotional Discount</label>
-              <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--accent-blue)' }}>
-                {promoDiscount}% Off
-              </span>
+              <label className="form-label" style={{ fontWeight: 600 }}>Discount Percentage</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <span className="font-mono" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textDecoration: 'line-through' }}>
+                  ${basePrice.toFixed(2)}
+                </span>
+                <span className="font-mono" style={{ fontSize: '0.9rem', fontWeight: 700, color: '#047857' }}>
+                  ${promoPrice.toFixed(2)}
+                </span>
+                <span className="badge badge-info" style={{ fontSize: '0.75rem' }}>
+                  {promoDiscount}% Off
+                </span>
+              </div>
             </div>
             <input
               type="range"
@@ -213,36 +303,70 @@ export const SupplyChainPage: React.FC = () => {
               step="5"
               value={promoDiscount}
               onChange={(e) => setPromoDiscount(parseInt(e.target.value))}
-              style={{ width: '100%', accentColor: 'var(--accent-blue)' }}
+              style={{ width: '100%', accentColor: 'var(--accent-blue)', marginTop: '0.3rem' }}
             />
           </div>
 
+          {/* 3 Outcome Metrics */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(3, 1fr)',
             gap: '0.5rem',
             textAlign: 'center',
           }}>
-            <div style={{ background: 'var(--bg-surface-subtle)', padding: '0.65rem', borderRadius: '4px' }}>
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Sales Boost</div>
-              <div style={{ fontSize: '1.125rem', fontWeight: 700, color: '#047857' }}>
+            <div style={{ background: 'var(--bg-surface-subtle)', padding: '0.65rem', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Item Volume Boost</div>
+              <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#047857', marginTop: '0.1rem' }}>
                 +{volumeUplift}%
               </div>
-            </div>
-
-            <div style={{ background: 'var(--bg-surface-subtle)', padding: '0.65rem', borderRadius: '4px' }}>
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Cannibalized</div>
-              <div style={{ fontSize: '1.125rem', fontWeight: 700, color: '#991B1B' }}>
-                74%
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                {baseMonthlyUnits} → {promoUnits} units
               </div>
             </div>
 
-            <div style={{ background: 'var(--bg-surface-subtle)', padding: '0.65rem', borderRadius: '4px' }}>
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Net Lift</div>
-              <div style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--accent-blue)' }}>
-                +{netIncrementalAisleRevenue}%
+            <div style={{ background: 'var(--bg-surface-subtle)', padding: '0.65rem', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Aisle Cannibalized</div>
+              <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#991B1B', marginTop: '0.1rem' }}>
+                {cannibalizationRate}%
+              </div>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                ~{cannibalizedUnits} units stolen
               </div>
             </div>
+
+            <div style={{ background: 'var(--bg-surface-subtle)', padding: '0.65rem', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Net Aisle Lift</div>
+              <div style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--accent-blue)', marginTop: '0.1rem' }}>
+                +{netAisleLiftPercent}%
+              </div>
+              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                +{netNewUnits} net new units
+              </div>
+            </div>
+          </div>
+
+          {/* Financial Summary Pill */}
+          <div style={{
+            padding: '0.65rem 0.85rem',
+            background: revenueDifference >= 0 ? 'var(--status-ok-bg)' : 'var(--status-warning-bg)',
+            border: `1px solid ${revenueDifference >= 0 ? 'var(--status-ok-border)' : 'var(--status-warning-border)'}`,
+            borderRadius: '6px',
+            fontSize: '0.75rem',
+            color: revenueDifference >= 0 ? 'var(--status-ok-text)' : 'var(--status-warning-text)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '0.4rem',
+          }}>
+            <div>
+              <strong>Monthly Revenue Impact:</strong>{' '}
+              ${baseRevenue} → ${promoRevenue}{' '}
+              ({revenueDifference >= 0 ? `+$${revenueDifference}` : `-$${Math.abs(revenueDifference)}`} / {revenueDiffPercent > 0 ? `+${revenueDiffPercent}%` : `${revenueDiffPercent}%`})
+            </div>
+            <span style={{ fontWeight: 600 }}>
+              {promoDiscount === 0 ? 'Regular Baseline' : revenueDifference >= 0 ? 'Volume-Accretive' : 'Margin Margin Risk'}
+            </span>
           </div>
         </div>
 
