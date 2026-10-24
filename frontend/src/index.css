@@ -6,14 +6,14 @@
 :root,
 [data-theme="light"] {
   /* Day / Light Theme Palette */
-  --bg-app: #F8FAFC;
+  --bg-app: #F1F5F9;
   --bg-surface: #FFFFFF;
-  --bg-surface-subtle: #F1F5F9;
+  --bg-surface-subtle: #F8FAFC;
   --bg-surface-hover: #E2E8F0;
 
-  --border-subtle: #E2E8F0;
-  --border-medium: #CBD5E1;
-  --border-strong: #94A3B8;
+  --border-subtle: #CBD5E1;
+  --border-medium: #94A3B8;
+  --border-strong: #64748B;
   --border-focus: #2563EB;
 
   --text-main: #0F172A;
@@ -27,7 +27,7 @@
   --accent-blue: #2563EB;
   --accent-blue-subtle: #EFF6FF;
 
-  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+  --card-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.08), 0 1px 2px -1px rgba(15, 23, 42, 0.06);
   --header-bg: #FFFFFF;
   --table-hover: #F8FAFC;
   --chart-grid: #E2E8F0;
@@ -37,75 +37,75 @@
   /* Status Badges */
   --status-critical-bg: #FEF2F2;
   --status-critical-text: #991B1B;
-  --status-critical-border: #FCA5A5;
+  --status-critical-border: #F87171;
 
   --status-warning-bg: #FFFBEB;
   --status-warning-text: #92400E;
-  --status-warning-border: #FDE68A;
+  --status-warning-border: #FBBF24;
 
   --status-ok-bg: #ECFDF5;
   --status-ok-text: #065F46;
-  --status-ok-border: #A7F3D0;
+  --status-ok-border: #34D399;
 
   --status-info-bg: #EFF6FF;
   --status-info-text: #1E40AF;
-  --status-info-border: #BFDBFE;
+  --status-info-border: #93C5FD;
 
   --status-overstock-bg: #FAF5FF;
   --status-overstock-text: #6B21A8;
-  --status-overstock-border: #E9D5FF;
+  --status-overstock-border: #D8B4FE;
 }
 
 [data-theme="dark"] {
   /* Dark Mode Palette */
-  --bg-app: #090D16;
-  --bg-surface: #0E1626;
-  --bg-surface-subtle: #162035;
-  --bg-surface-hover: #1E2B45;
+  --bg-app: #0B1120;
+  --bg-surface: #111C33;
+  --bg-surface-subtle: #192744;
+  --bg-surface-hover: #223458;
 
-  --border-subtle: #1C273C;
-  --border-medium: #2D3D5A;
-  --border-strong: #475569;
+  --border-subtle: #2D3D5A;
+  --border-medium: #475569;
+  --border-strong: #64748B;
   --border-focus: #3B82F6;
 
   --text-main: #F8FAFC;
   --text-secondary: #CBD5E1;
-  --text-muted: #8E9DB2;
+  --text-muted: #94A3B8;
   --text-dim: #64748B;
 
   --primary: #3B82F6;
   --primary-hover: #2563EB;
   --primary-btn-text: #FFFFFF;
   --accent-blue: #3B82F6;
-  --accent-blue-subtle: rgba(59, 130, 246, 0.12);
+  --accent-blue-subtle: rgba(59, 130, 246, 0.15);
 
-  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.3);
-  --header-bg: #0E1626;
-  --table-hover: #131E33;
-  --chart-grid: #1C273C;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --header-bg: #0F172A;
+  --table-hover: #192744;
+  --chart-grid: #2D3D5A;
   --chart-tooltip-bg: #162035;
   --chart-hist-line: #64748B;
 
   /* Status Badges in Dark Mode */
-  --status-critical-bg: rgba(239, 68, 68, 0.15);
+  --status-critical-bg: rgba(239, 68, 68, 0.2);
   --status-critical-text: #FCA5A5;
-  --status-critical-border: rgba(239, 68, 68, 0.3);
+  --status-critical-border: rgba(239, 68, 68, 0.5);
 
-  --status-warning-bg: rgba(245, 158, 11, 0.15);
+  --status-warning-bg: rgba(245, 158, 11, 0.2);
   --status-warning-text: #FDE68A;
-  --status-warning-border: rgba(245, 158, 11, 0.3);
+  --status-warning-border: rgba(245, 158, 11, 0.5);
 
-  --status-ok-bg: rgba(16, 185, 129, 0.15);
+  --status-ok-bg: rgba(16, 185, 129, 0.2);
   --status-ok-text: #A7F3D0;
-  --status-ok-border: rgba(16, 185, 129, 0.3);
+  --status-ok-border: rgba(16, 185, 129, 0.5);
 
-  --status-info-bg: rgba(59, 130, 246, 0.15);
+  --status-info-bg: rgba(59, 130, 246, 0.2);
   --status-info-text: #BFDBFE;
-  --status-info-border: rgba(59, 130, 246, 0.3);
+  --status-info-border: rgba(59, 130, 246, 0.5);
 
-  --status-overstock-bg: rgba(168, 85, 247, 0.15);
+  --status-overstock-bg: rgba(168, 85, 247, 0.2);
   --status-overstock-text: #E9D5FF;
-  --status-overstock-border: rgba(168, 85, 247, 0.3);
+  --status-overstock-border: rgba(168, 85, 247, 0.5);
 }
 
 /* Base Reset */
@@ -149,7 +149,11 @@ code, pre, .font-mono {
   border-radius: 8px;
   padding: 1.25rem 1.5rem;
   box-shadow: var(--card-shadow);
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  border-color: var(--border-medium);
 }
 
 /* Buttons */

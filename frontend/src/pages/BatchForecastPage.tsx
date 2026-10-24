@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CATALOG_PRODUCTS, STORES, API_BASE } from '../services/api';
-import { Play, CheckCircle2 } from 'lucide-react';
+import { Play, CheckCircle2, Plus, X, PackagePlus } from 'lucide-react';
 
 interface BatchRow {
   productId: string;
@@ -19,6 +19,25 @@ export const BatchForecastPage: React.FC = () => {
 
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [results, setResults] = useState<any[] | null>(null);
+
+  // Add Product Modal State
+  const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
+  const [modalProduct, setModalProduct] = useState<string>(CATALOG_PRODUCTS[0].id);
+  const [modalStore, setModalStore] = useState<string>(STORES[0].id);
+  const [modalHorizon, setModalHorizon] = useState<number>(6);
+
+  const handleOpenAddModal = () => {
+    setIsAddModalOpen(true);
+  };
+
+  const handleConfirmAddProduct = (e: React.FormEvent) => {
+    e.preventDefault();
+    setBatchItems((prev) => [
+      ...prev,
+      { productId: modalProduct, storeId: modalStore, horizon: modalHorizon },
+    ]);
+    setIsAddModalOpen(false);
+  };
 
   const runBatch = async () => {
     setIsRunning(true);
@@ -54,13 +73,6 @@ export const BatchForecastPage: React.FC = () => {
     }
   };
 
-  const addRow = () => {
-    setBatchItems([
-      ...batchItems,
-      { productId: 'FOODS_3_120', storeId: 'TX_2', horizon: 6 },
-    ]);
-  };
-
   const removeRow = (index: number) => {
     setBatchItems(batchItems.filter((_, i) => i !== index));
   };
@@ -85,8 +97,9 @@ export const BatchForecastPage: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <button onClick={addRow} className="btn btn-secondary btn-sm">
-            + Add Product
+          <button onClick={handleOpenAddModal} className="btn btn-secondary btn-sm">
+            <Plus size={14} />
+            Add Product
           </button>
           <button onClick={runBatch} disabled={isRunning} className="btn btn-primary btn-sm">
             <Play size={14} />
@@ -261,6 +274,158 @@ export const BatchForecastPage: React.FC = () => {
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Add Product Modal Window */}
+      {isAddModalOpen && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 150,
+          padding: '1rem',
+        }}>
+          <div className="card" style={{
+            maxWidth: '520px',
+            width: '100%',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-medium)',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2)',
+            padding: '1.5rem',
+            borderRadius: '10px',
+          }}>
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{
+                  background: 'var(--accent-blue-subtle)',
+                  color: 'var(--accent-blue)',
+                  padding: '0.4rem',
+                  borderRadius: '6px',
+                  display: 'flex',
+                }}>
+                  <PackagePlus size={18} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                    Add Product to Multi-Item Forecast
+                  </h3>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    Select product SKU, target retail store, and forecast horizon.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsAddModalOpen(false)}
+                className="btn btn-ghost btn-sm"
+                style={{ padding: '0.25rem' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleConfirmAddProduct} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {/* Product Selection */}
+              <div className="form-group">
+                <label className="form-label" style={{ fontWeight: 600 }}>
+                  Select Product Item
+                </label>
+                <select
+                  className="form-select"
+                  value={modalProduct}
+                  onChange={(e) => setModalProduct(e.target.value)}
+                  style={{ width: '100%', fontSize: '0.875rem' }}
+                >
+                  {CATALOG_PRODUCTS.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} — ${p.basePrice.toFixed(2)} ({p.category})
+                    </option>
+                  ))}
+                </select>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                  SKU Code: {modalProduct}
+                </span>
+              </div>
+
+              {/* Store Selection */}
+              <div className="form-group">
+                <label className="form-label" style={{ fontWeight: 600 }}>
+                  Select Store Location
+                </label>
+                <select
+                  className="form-select"
+                  value={modalStore}
+                  onChange={(e) => setModalStore(e.target.value)}
+                  style={{ width: '100%', fontSize: '0.875rem' }}
+                >
+                  {STORES.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name} ({s.id}) · Lead Time: {s.leadTimeDays}d
+                    </option>
+                  ))}
+                </select>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                  Regional Cluster: {STORES.find((s) => s.id === modalStore)?.cluster}
+                </span>
+              </div>
+
+              {/* Forecast Horizon Selection */}
+              <div className="form-group">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label className="form-label" style={{ fontWeight: 600 }}>
+                    Forecast Horizon
+                  </label>
+                  <span className="font-mono" style={{ fontWeight: 700, color: 'var(--accent-blue)', fontSize: '0.85rem' }}>
+                    {modalHorizon} Months Ahead
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.2rem' }}>
+                  {[1, 3, 6, 12].map((h) => (
+                    <button
+                      key={h}
+                      type="button"
+                      onClick={() => setModalHorizon(h)}
+                      className={`btn btn-sm ${modalHorizon === h ? 'btn-primary' : 'btn-secondary'}`}
+                      style={{ flex: 1, padding: '0.45rem' }}
+                    >
+                      {h} Month{h > 1 ? 's' : ''}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '0.6rem',
+                marginTop: '0.5rem',
+                paddingTop: '0.85rem',
+                borderTop: '1px solid var(--border-subtle)',
+              }}>
+                <button
+                  type="button"
+                  onClick={() => setIsAddModalOpen(false)}
+                  className="btn btn-secondary btn-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary btn-sm"
+                >
+                  <Plus size={14} />
+                  Add to Forecast Queue
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

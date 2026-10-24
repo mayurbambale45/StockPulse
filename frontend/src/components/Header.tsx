@@ -49,14 +49,18 @@ export const Header: React.FC<HeaderProps> = ({
     }}>
       {/* Top Bar: Brand, Status, Day/Dark Toggle */}
       <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0.75rem 1.5rem',
         borderBottom: '1px solid var(--border-subtle)',
-        flexWrap: 'wrap',
-        gap: '0.75rem',
       }}>
+        <div style={{
+          maxWidth: '1360px',
+          margin: '0 auto',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0.75rem 1.5rem',
+          flexWrap: 'wrap',
+          gap: '0.75rem',
+        }}>
         {/* Brand */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
           <div style={{
@@ -133,13 +137,16 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
       </div>
+    </div>
 
       {/* Navigation Tabs */}
       <div style={{
+        maxWidth: '1360px',
+        margin: '0 auto',
         display: 'flex',
         alignItems: 'center',
         padding: '0 1.5rem',
-        gap: '0.25rem',
+        gap: '0.5rem',
         overflowX: 'auto',
       }}>
         {navItems.map((item) => {
@@ -152,21 +159,22 @@ export const Header: React.FC<HeaderProps> = ({
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.45rem',
-                padding: '0.75rem 0.9rem',
+                gap: '0.5rem',
+                padding: '0.8rem 1rem',
                 border: 'none',
-                background: 'transparent',
-                color: isActive ? 'var(--text-main)' : 'var(--text-muted)',
+                background: isActive ? 'var(--accent-blue-subtle)' : 'transparent',
+                color: isActive ? 'var(--accent-blue)' : 'var(--text-secondary)',
                 fontSize: '0.875rem',
                 fontWeight: isActive ? 600 : 500,
                 borderBottom: isActive ? '2px solid var(--accent-blue)' : '2px solid transparent',
+                borderRadius: '6px 6px 0 0',
                 cursor: 'pointer',
-                transition: 'color 0.15s ease',
+                transition: 'all 0.15s ease',
                 whiteSpace: 'nowrap',
                 flexShrink: 0,
               }}
             >
-              <Icon size={15} color={isActive ? 'var(--accent-blue)' : 'var(--text-muted)'} style={{ flexShrink: 0 }} />
+              <Icon size={16} color={isActive ? 'var(--accent-blue)' : 'var(--text-muted)'} style={{ flexShrink: 0 }} />
               {item.label}
             </button>
           );

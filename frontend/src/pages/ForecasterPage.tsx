@@ -9,7 +9,6 @@ import type { ForecastResponse } from '../types';
 import { ForecastChart } from '../components/ForecastChart';
 import { FeatureCatalogDrawer } from '../components/FeatureCatalogDrawer';
 import {
-  TrendingUp,
   Sliders,
   Download,
   Package,
@@ -140,7 +139,7 @@ export const ForecasterPage: React.FC = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <label className="form-label">Forecast Period</label>
               <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--accent-blue)' }}>
-                {horizon} Months
+                {horizon} Months {isLoading && '(Updating...)'}
               </span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
@@ -150,25 +149,12 @@ export const ForecasterPage: React.FC = () => {
                   type="button"
                   onClick={() => setHorizon(h)}
                   className={`btn btn-sm ${horizon === h ? 'btn-primary' : 'btn-secondary'}`}
-                  style={{ flex: 1, padding: '0.35rem 0.45rem' }}
+                  style={{ flex: 1, padding: '0.45rem 0.5rem' }}
                 >
                   {h}M
                 </button>
               ))}
             </div>
-          </div>
-
-          {/* Action Button */}
-          <div>
-            <button
-              onClick={handlePredict}
-              disabled={isLoading}
-              className="btn btn-primary"
-              style={{ width: '100%', height: '36px' }}
-            >
-              <TrendingUp size={15} />
-              {isLoading ? 'Calculating...' : 'Forecast Sales'}
-            </button>
           </div>
         </div>
 
