@@ -29,38 +29,53 @@ export const SupplyChainPage: React.FC = () => {
       {/* Top 3 Summary Cards */}
       <div className="grid-cols-3 gap-4">
         <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem' }}>
-            <Activity size={15} color="var(--primary)" />
-            <h4 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-main)' }}>
-              Smoother Warehouse Orders (-62%)
-            </h4>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Activity size={15} color="var(--primary)" />
+              <h4 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                Order Whiplash Reduction
+              </h4>
+            </div>
+            <span className="badge badge-info" style={{ fontSize: '0.65rem' }}>
+              Estimated Benefit (-62%)
+            </span>
           </div>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-            Filters out temporary holiday spikes so warehouses don't panic-order double the required inventory.
+            Filters out temporary holiday spikes so upstream warehouses avoid panic-ordering double the required inventory.
           </p>
         </div>
 
         <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem' }}>
-            <DollarSign size={15} color="#059669" />
-            <h4 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-main)' }}>
-              Discounts & Brand Switching
-            </h4>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <DollarSign size={15} color="#059669" />
+              <h4 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                Aisle Cannibalization
+              </h4>
+            </div>
+            <span className="badge badge-ok" style={{ fontSize: '0.65rem' }}>
+              Measured M5 Finding (74%)
+            </span>
           </div>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-            In groceries, 74% of discount sales growth is taken from other items in the same aisle rather than new shoppers.
+            Empirical data confirms 74% of grocery promotional volume growth substitutes other items in the same aisle rather than adding new shoppers.
           </p>
         </div>
 
         <div className="card">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.25rem' }}>
-            <Truck size={15} color="#2563EB" />
-            <h4 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-main)' }}>
-              Faster Restock (24–36h)
-            </h4>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Truck size={15} color="#2563EB" />
+              <h4 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                Regional Lead Time
+              </h4>
+            </div>
+            <span className="badge badge-info" style={{ fontSize: '0.65rem' }}>
+              Estimated Benefit (24–36h)
+            </span>
           </div>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-            Pre-positioning stock closer to store clusters cuts transit delivery time and lowers freight costs by 12–18%.
+            Pre-positioning stock closer to store clusters cuts transit delivery time and lowers estimated freight costs by 12–18%.
           </p>
         </div>
       </div>

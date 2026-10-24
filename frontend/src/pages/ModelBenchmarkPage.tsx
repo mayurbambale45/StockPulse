@@ -13,7 +13,7 @@ export const ModelBenchmarkPage: React.FC = () => {
   const [showStatDetails, setShowStatDetails] = useState<boolean>(false);
 
   const hyperparameters = [
-    { param: 'Model Type', value: 'LightGBM Gradient Boosted Trees', purpose: 'Trained on retail sales history.' },
+    { param: 'Model Type', value: 'LightGBM Gradient Boosted Trees', purpose: 'Direct multi-horizon tree ensembles.' },
     { param: 'Learning Rate', value: '0.05', purpose: 'Ensures steady gradient convergence.' },
     { param: 'Trees Per Horizon', value: '1500 (Early stopping at 50)', purpose: 'Optimizes forecast accuracy.' },
     { param: 'Tree Depth / Leaves', value: '63 leaves', purpose: 'Captures non-linear promotion and holiday interactions.' },
@@ -28,8 +28,28 @@ export const ModelBenchmarkPage: React.FC = () => {
           Forecast Accuracy & Reliability
         </h1>
         <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
-          Tested accuracy metrics across 12 months ahead.
+          Evaluation metrics across 12 monthly horizons on Walmart M5 historical series.
         </p>
+      </div>
+
+      {/* Metric Explanation Banner */}
+      <div style={{
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--border-medium)',
+        borderRadius: '6px',
+        padding: '0.9rem 1.15rem',
+        fontSize: '0.8125rem',
+        color: 'var(--text-secondary)',
+        lineHeight: 1.5,
+      }}>
+        <div style={{ fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.25rem' }}>
+          Understanding WAPE (Weighted Absolute Percentage Error):
+        </div>
+        WAPE measures the total difference between forecasted units and actual sold units divided by total sales. <strong>A lower WAPE percentage means predictions are closer to real customer demand.</strong>
+        <div style={{ marginTop: '0.4rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+          • <strong>Validation Set (shown below):</strong> Month 1 WAPE is <strong>28.91%</strong> compared to the baseline moving average of <strong>44.20%</strong> (15.3 percentage point error reduction).<br />
+          • <strong>Out-of-Sample / Unseen Test Evaluation:</strong> On limited unseen-test evaluation across all 30,490 store-SKU series, the report records a median WAPE of <strong>41.5%</strong>, reflecting real-world intermittent retail demand.
+        </div>
       </div>
 
       {/* Performance Tiles */}

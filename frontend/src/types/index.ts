@@ -6,6 +6,8 @@ export interface ForecastPoint {
   date: string;
   predictedSales: number;
   confidence: HorizonConfidence;
+  lowerBound?: number;
+  upperBound?: number;
 }
 
 export interface ForecastResponse {
@@ -37,10 +39,12 @@ export interface InventoryItem {
   unitPrice: number;
   lastMonthSales: number;
   forecastDemandMonth1: number;
+  leadTimeDemand: number;
   rop: number;
   safetyStock: number;
   status: AlertTier;
   recommendedOrder: number;
+  orderCalculationExplanation: string;
   triggeredAction: string;
 }
 

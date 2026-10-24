@@ -194,7 +194,7 @@ export const BatchForecastPage: React.FC = () => {
           </div>
 
           <div className="table-container">
-            <table className="data-table" style={{ minWidth: '600px' }}>
+            <table className="data-table" style={{ minWidth: '700px' }}>
               <thead>
                 <tr>
                   <th>Product</th>
@@ -204,6 +204,7 @@ export const BatchForecastPage: React.FC = () => {
                   <th>Month 3</th>
                   <th>Month 6</th>
                   <th>Total Predicted Demand</th>
+                  <th>Projected Stock Risk</th>
                 </tr>
               </thead>
               <tbody>
@@ -214,6 +215,9 @@ export const BatchForecastPage: React.FC = () => {
                   const m6 = res.forecast[5]?.predictedSales || m3;
                   const sum6 = res.forecast.reduce((acc: number, f: any) => acc + f.predictedSales, 0);
                   const prodObj = CATALOG_PRODUCTS.find((p) => p.id === res.productId);
+
+                  // Calculate stock risk based on demand trend
+                  const riskLevel = m1 > 35 ? 'HIGH_DEMAND' : m1 < 15 ? 'LOW_VELOCITY' : 'BALANCED';
 
                   return (
                     <tr key={rIdx}>
@@ -236,6 +240,21 @@ export const BatchForecastPage: React.FC = () => {
                       <td>{m6} units</td>
                       <td style={{ fontWeight: 700, color: 'var(--text-main)' }}>
                         {sum6.toFixed(0)} units
+                      </td>
+                      <td>
+                        {riskLevel === 'HIGH_DEMAND' ? (
+                          <span className="badge badge-critical" style={{ fontSize: '0.7rem' }}>
+                            Stockout Risk (High Volume)
+                          </span>
+                        ) : riskLevel === 'LOW_VELOCITY' ? (
+                          <span className="badge badge-overstock" style={{ fontSize: '0.7rem' }}>
+                            Overstock Risk (Slow)
+                          </span>
+                        ) : (
+                          <span className="badge badge-ok" style={{ fontSize: '0.7rem' }}>
+                            Healthy Velocity
+                          </span>
+                        )}
                       </td>
                     </tr>
                   );

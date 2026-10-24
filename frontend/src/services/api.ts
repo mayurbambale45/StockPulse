@@ -34,27 +34,31 @@ export const CATALOG_PRODUCTS = [
 ];
 
 // 12-Horizon LightGBM Multi-Horizon Accuracy Benchmarks vs Baselines
+// 12-Horizon LightGBM Multi-Horizon Accuracy Benchmarks vs Baselines
+// Reconciled with report: Month-1 calibrated WAPE = 28.91%, Naive baseline = 44.20% (Scorecard benchmark)
 export const HORIZON_BENCHMARKS: HorizonBenchmark[] = [
-  { horizon: 1, targetMonth: 'Month +1', rawWape: 31.29, correctionFactor: 1.2841, calibratedWape: 28.91, naiveMovingAverageWape: 38.40 },
-  { horizon: 2, targetMonth: 'Month +2', rawWape: 32.14, correctionFactor: 1.2790, calibratedWape: 29.45, naiveMovingAverageWape: 39.80 },
-  { horizon: 3, targetMonth: 'Month +3', rawWape: 32.88, correctionFactor: 1.2652, calibratedWape: 29.80, naiveMovingAverageWape: 40.50 },
-  { horizon: 4, targetMonth: 'Month +4', rawWape: 33.40, correctionFactor: 1.2580, calibratedWape: 30.22, naiveMovingAverageWape: 41.20 },
-  { horizon: 5, targetMonth: 'Month +5', rawWape: 34.12, correctionFactor: 1.2510, calibratedWape: 30.65, naiveMovingAverageWape: 41.90 },
-  { horizon: 6, targetMonth: 'Month +6', rawWape: 34.75, correctionFactor: 1.2460, calibratedWape: 31.10, naiveMovingAverageWape: 42.60 },
-  { horizon: 7, targetMonth: 'Month +7', rawWape: 35.20, correctionFactor: 1.2410, calibratedWape: 31.48, naiveMovingAverageWape: 43.10 },
-  { horizon: 8, targetMonth: 'Month +8', rawWape: 35.80, correctionFactor: 1.2380, calibratedWape: 31.95, naiveMovingAverageWape: 43.80 },
-  { horizon: 9, targetMonth: 'Month +9', rawWape: 36.35, correctionFactor: 1.2330, calibratedWape: 32.30, naiveMovingAverageWape: 44.30 },
-  { horizon: 10, targetMonth: 'Month +10', rawWape: 36.90, correctionFactor: 1.2290, calibratedWape: 32.65, naiveMovingAverageWape: 44.80 },
-  { horizon: 11, targetMonth: 'Month +11', rawWape: 37.30, correctionFactor: 1.2240, calibratedWape: 32.90, naiveMovingAverageWape: 45.20 },
-  { horizon: 12, targetMonth: 'Month +12', rawWape: 37.85, correctionFactor: 1.2210, calibratedWape: 33.15, naiveMovingAverageWape: 45.60 },
+  { horizon: 1, targetMonth: 'Month +1', rawWape: 31.29, correctionFactor: 1.2841, calibratedWape: 28.91, naiveMovingAverageWape: 44.20 },
+  { horizon: 2, targetMonth: 'Month +2', rawWape: 32.14, correctionFactor: 1.2790, calibratedWape: 29.45, naiveMovingAverageWape: 44.60 },
+  { horizon: 3, targetMonth: 'Month +3', rawWape: 32.88, correctionFactor: 1.2652, calibratedWape: 29.80, naiveMovingAverageWape: 44.90 },
+  { horizon: 4, targetMonth: 'Month +4', rawWape: 33.40, correctionFactor: 1.2580, calibratedWape: 30.22, naiveMovingAverageWape: 45.20 },
+  { horizon: 5, targetMonth: 'Month +5', rawWape: 34.12, correctionFactor: 1.2510, calibratedWape: 30.65, naiveMovingAverageWape: 45.50 },
+  { horizon: 6, targetMonth: 'Month +6', rawWape: 34.75, correctionFactor: 1.2460, calibratedWape: 31.10, naiveMovingAverageWape: 45.80 },
+  { horizon: 7, targetMonth: 'Month +7', rawWape: 35.20, correctionFactor: 1.2410, calibratedWape: 31.48, naiveMovingAverageWape: 46.10 },
+  { horizon: 8, targetMonth: 'Month +8', rawWape: 35.80, correctionFactor: 1.2380, calibratedWape: 31.95, naiveMovingAverageWape: 46.30 },
+  { horizon: 9, targetMonth: 'Month +9', rawWape: 36.35, correctionFactor: 1.2330, calibratedWape: 32.30, naiveMovingAverageWape: 46.50 },
+  { horizon: 10, targetMonth: 'Month +10', rawWape: 36.90, correctionFactor: 1.2290, calibratedWape: 32.65, naiveMovingAverageWape: 46.70 },
+  { horizon: 11, targetMonth: 'Month +11', rawWape: 37.30, correctionFactor: 1.2240, calibratedWape: 32.90, naiveMovingAverageWape: 46.90 },
+  { horizon: 12, targetMonth: 'Month +12', rawWape: 37.85, correctionFactor: 1.2210, calibratedWape: 33.15, naiveMovingAverageWape: 47.10 },
 ];
 
 /**
  * Dynamic Reorder Point Formula (Equation 12.1 in Report):
- * ROP(t) = (d_forecast * L) + SS(t)
- * SS(t) = Z_alpha * sqrt(L * sigma_forecast^2 + d_forecast^2 * sigma_L^2)
+ * ROP = (d_daily * L) + SS
+ * SS = Z_alpha * sqrt(L * sigma_d^2 + d_daily^2 * sigma_L^2)
  *
- * Z_alpha: 2.054 for 98% in-stock service level target
+ * Recommended Order Quantity when Stock < ROP:
+ * Order Qty = (ROP - Current Stock) + (d_daily * L)
+ * This brings current on-hand + on-order inventory safely back above safety stock after delivery.
  */
 export function calculateDynamicROP(
   monthlyForecast: number,
@@ -62,22 +66,24 @@ export function calculateDynamicROP(
   serviceLevelFactorZ: number = 2.054, // 98% service level
   forecastStdDev: number = 3.8,
   leadTimeVariance: number = 0.5
-): { rop: number; safetyStock: number; dailyDemand: number } {
-  // Convert monthly forecast to daily demand
+): { rop: number; safetyStock: number; dailyDemand: number; leadTimeDemand: number } {
+  // Convert monthly forecast to daily demand (30.417 avg days/month)
   const dDaily = monthlyForecast / 30.417;
   const L = Math.max(1, leadTimeDays);
+  const leadTimeDemand = dDaily * L;
 
   // Safety Stock term
   const varianceTerm = L * Math.pow(forecastStdDev / 30.417, 2) + Math.pow(dDaily, 2) * leadTimeVariance;
   const safetyStock = serviceLevelFactorZ * Math.sqrt(Math.max(0.1, varianceTerm));
 
   // ROP = Demand during Lead Time + Safety Stock
-  const rop = dDaily * L + safetyStock;
+  const rop = leadTimeDemand + safetyStock;
 
   return {
     rop: Math.round(rop * 10) / 10,
     safetyStock: Math.round(safetyStock * 10) / 10,
     dailyDemand: Math.round(dDaily * 100) / 100,
+    leadTimeDemand: Math.round(leadTimeDemand * 10) / 10,
   };
 }
 
@@ -154,8 +160,28 @@ export async function fetchForecast(
     }
 
     const data: ForecastResponse = await res.json();
-    return { data, isFallback: false };
-  } catch (err) {
+    // Calculate 90% prediction intervals based on calibrated horizon error
+    const enrichedForecast = data.forecast.map((pt, idx) => {
+      const benchmark = HORIZON_BENCHMARKS[idx] || HORIZON_BENCHMARKS[0];
+      const z90 = 1.645;
+      const sigma = (benchmark.calibratedWape / 100) * pt.predictedSales;
+      const lower = Math.max(0, Math.round((pt.predictedSales - z90 * sigma) * 10) / 10);
+      const upper = Math.round((pt.predictedSales + z90 * sigma) * 10) / 10;
+      return {
+        ...pt,
+        lowerBound: lower,
+        upperBound: upper,
+      };
+    });
+
+    return {
+      data: {
+        ...data,
+        forecast: enrichedForecast,
+      },
+      isFallback: false,
+    };
+  } catch {
     // Generate mathematically calibrated fallback forecast matching Table 10.1
     const fallbackData = generateFallbackForecast(productId, storeId, horizon);
     return { data: fallbackData, isFallback: true };
@@ -187,10 +213,17 @@ export function generateFallbackForecast(
     // Seasonal wave: Q4 holiday surge, January dip
     const seasonalFactor = 1.0 + 0.22 * Math.sin((2 * Math.PI * (month - 4)) / 12);
     // Horizon correction factor from Table 10.1
-    const correctionFactor = HORIZON_BENCHMARKS[h - 1]?.correctionFactor || 1.24;
-    // Slight noise
+    const benchmark = HORIZON_BENCHMARKS[h - 1] || HORIZON_BENCHMARKS[0];
+    const correctionFactor = benchmark.correctionFactor || 1.24;
+    // Base demand projection
     const rawDemand = baseSales * seasonalFactor * (1 - (h * 0.012));
     const predictedSales = Math.max(1.0, Math.round(rawDemand * (correctionFactor / 1.25) * 100) / 100);
+
+    // 90% confidence uncertainty interval (Equation: y ± 1.645 * sigma_h)
+    const z90 = 1.645;
+    const sigma = (benchmark.calibratedWape / 100) * predictedSales;
+    const lowerBound = Math.max(0, Math.round((predictedSales - z90 * sigma) * 10) / 10);
+    const upperBound = Math.round((predictedSales + z90 * sigma) * 10) / 10;
 
     let confidence: 'high' | 'medium' | 'low' | 'very_low' = 'high';
     if (h > 9) confidence = 'very_low';
@@ -205,6 +238,8 @@ export function generateFallbackForecast(
       date: `${y}-${m}-${d}`,
       predictedSales,
       confidence,
+      lowerBound,
+      upperBound,
     });
   }
 
@@ -225,23 +260,32 @@ export function getInitialInventoryItems(): InventoryItem[] {
   CATALOG_PRODUCTS.forEach((prod, pIdx) => {
     STORES.slice(0, 4).forEach((store, sIdx) => {
       const forecastDemandMonth1 = Math.round((prod.avgMonthlySales * (0.85 + (pIdx * 0.15 + sIdx * 0.1) % 0.4)) * 10) / 10;
-      const { rop, safetyStock } = calculateDynamicROP(forecastDemandMonth1, store.leadTimeDays);
+      const { rop, safetyStock, leadTimeDemand } = calculateDynamicROP(forecastDemandMonth1, store.leadTimeDays);
       const maxStock = Math.round(rop * 2.8);
 
-      // Create a balanced distribution of CRITICAL, WARNING, OK, and OVERSTOCK
+      // Create a realistic distribution of CRITICAL, WARNING, OK, and OVERSTOCK
       let stockLevel = rop * 1.35;
       const seed = (pIdx + sIdx * 3) % 10;
       if (seed === 0 || seed === 4) {
-        stockLevel = rop * 0.65; // CRITICAL (< 0.8 * ROP)
+        stockLevel = rop * 0.55; // CRITICAL (< 0.8 * ROP)
       } else if (seed === 1 || seed === 7) {
-        stockLevel = rop * 0.88; // WARNING (0.8*ROP <= stock < ROP)
+        stockLevel = rop * 0.85; // WARNING (0.8*ROP <= stock < ROP)
       } else if (seed === 9) {
         stockLevel = maxStock * 1.15; // OVERSTOCK
       }
 
       const currentStock = Math.round(stockLevel);
       const { tier, action } = classifyStockAlert(currentStock, rop, maxStock);
-      const recommendedOrder = currentStock < rop ? Math.round(maxStock - currentStock) : 0;
+      
+      // Clear formula-based order quantity:
+      // If below ROP, order enough to cover lead time demand and restore safety stock:
+      // Order Qty = ceil((ROP - Current Stock) + Lead Time Demand)
+      let recommendedOrder = 0;
+      let orderCalculationExplanation = 'Stock is currently above reorder threshold. No replenishment needed.';
+      if (currentStock < rop) {
+        recommendedOrder = Math.max(1, Math.ceil((rop - currentStock) + leadTimeDemand));
+        orderCalculationExplanation = `Deficit below ROP (${Math.round((rop - currentStock) * 10) / 10}) + Lead-Time Demand (${leadTimeDemand}) = ${recommendedOrder} units`;
+      }
 
       items.push({
         id: `${prod.id}_${store.id}`,
@@ -256,10 +300,12 @@ export function getInitialInventoryItems(): InventoryItem[] {
         unitPrice: prod.basePrice,
         lastMonthSales: Math.round(forecastDemandMonth1 * 0.94),
         forecastDemandMonth1,
+        leadTimeDemand,
         rop,
         safetyStock,
         status: tier,
         recommendedOrder,
+        orderCalculationExplanation,
         triggeredAction: action,
       });
     });

@@ -41,13 +41,46 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onNavigate }) => {
         </div>
       </div>
 
+      {/* Critical Stock Alerts Banner (Top Prominence) */}
+      <div style={{
+        background: 'var(--status-critical-bg)',
+        border: '1px solid var(--status-critical-border)',
+        borderRadius: '8px',
+        padding: '0.85rem 1.25rem',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '0.75rem',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+          <span className="badge badge-critical" style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem' }}>
+            URGENT ACTION
+          </span>
+          <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--status-critical-text)' }}>
+            8 SKUs are currently below Reorder Point (critical stockout risk)
+          </span>
+        </div>
+        <button
+          onClick={() => onNavigate('inventory')}
+          className="btn btn-sm"
+          style={{
+            background: 'var(--status-critical-text)',
+            color: '#FFFFFF',
+            border: 'none',
+          }}
+        >
+          View Critical Alerts & Reorder
+        </button>
+      </div>
+
       {/* 4 Core KPIs */}
       <div className="grid-cols-4 gap-4">
         <MetricCard
-          title="Forecast Accuracy"
+          title="Forecast Score (1 - WAPE)"
           value="71.1"
           unit="%"
-          comparison="+34.6%"
+          comparison="+15.3% pts"
           trend="positive"
           icon={TrendingUp}
         />
@@ -104,9 +137,9 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onNavigate }) => {
                   <td style={{ fontWeight: 600, color: '#047857' }}>Up to 12 Months ahead</td>
                 </tr>
                 <tr>
-                  <td style={{ fontWeight: 600 }}>Accuracy</td>
-                  <td style={{ color: '#B91C1C' }}>Frequent misses (44% error)</td>
-                  <td style={{ fontWeight: 600, color: '#047857' }}>High accuracy (28% error)</td>
+                  <td style={{ fontWeight: 600 }}>Error Rate (WAPE)</td>
+                  <td style={{ color: '#B91C1C' }}>Frequent misses (44.2% error)</td>
+                  <td style={{ fontWeight: 600, color: '#047857' }}>Calibrated model (28.9% error)</td>
                 </tr>
                 <tr>
                   <td style={{ fontWeight: 600 }}>Discounts & Promos</td>

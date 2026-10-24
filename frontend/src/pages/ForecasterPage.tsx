@@ -12,7 +12,6 @@ import {
   TrendingUp,
   Sliders,
   Download,
-  AlertCircle,
   Package,
 } from 'lucide-react';
 
@@ -173,6 +172,32 @@ export const ForecasterPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Selected Product, Store & Date Range Summary */}
+        <div style={{
+          marginTop: '1rem',
+          padding: '0.75rem 1rem',
+          background: 'var(--bg-surface-subtle)',
+          borderRadius: '6px',
+          border: '1px solid var(--border-subtle)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '0.75rem',
+          fontSize: '0.8125rem',
+        }}>
+          <div>
+            <span style={{ color: 'var(--text-muted)' }}>Target SKU & Store: </span>
+            <strong style={{ color: 'var(--text-main)' }}>{currentProd.id}</strong> ({currentProd.name}) at <strong style={{ color: 'var(--text-main)' }}>{currentStore.id}</strong> ({currentStore.name})
+          </div>
+          <div>
+            <span style={{ color: 'var(--text-muted)' }}>Forecast Window: </span>
+            <span className="font-mono" style={{ fontWeight: 600, color: 'var(--accent-blue)' }}>
+              {forecastResult?.forecast[0]?.date || '2016-07-31'} → {forecastResult?.forecast[forecastResult.forecast.length - 1]?.date || '2016-12-31'}
+            </span>
+          </div>
+        </div>
+
         {/* Item Metadata */}
         <div style={{
           marginTop: '0.85rem',
@@ -187,17 +212,26 @@ export const ForecasterPage: React.FC = () => {
           color: 'var(--text-muted)',
         }}>
           <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap' }}>
+            <span>Dataset Series: <strong style={{ color: 'var(--text-main)' }}>{currentProd.id}_{currentStore.id}</strong></span>
             <span>Category: <strong style={{ color: 'var(--text-main)' }}>{currentProd.category}</strong></span>
             <span>Retail Price: <strong style={{ color: 'var(--text-main)' }}>${currentProd.basePrice.toFixed(2)}</strong></span>
-            <span>Delivery Time: <strong style={{ color: 'var(--text-main)' }}>{currentStore.leadTimeDays} days</strong></span>
+            <span>Supplier Lead Time: <strong style={{ color: 'var(--text-main)' }}>{currentStore.leadTimeDays} days</strong></span>
           </div>
 
-          {isFallbackMode && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#D97706' }}>
-              <AlertCircle size={13} />
-              <span>Offline Demo Data</span>
-            </div>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span className="badge badge-info" style={{ fontSize: '0.65rem' }}>
+              Walmart M5 Schema
+            </span>
+            {isFallbackMode ? (
+              <span className="badge badge-warning" style={{ fontSize: '0.65rem' }}>
+                Offline Demo Mode
+              </span>
+            ) : (
+              <span className="badge badge-ok" style={{ fontSize: '0.65rem' }}>
+                Live Model Endpoint
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -292,24 +326,33 @@ export const ForecasterPage: React.FC = () => {
               color: 'var(--text-secondary)',
               lineHeight: 1.4,
             }}>
-              Reorder Point = (Daily Sales × Delivery Days) + Safety Buffer
+              Lead-Time Demand = (Month 1 Forecast ÷ 30.417) × {currentStore.leadTimeDays} days = {Math.round((month1Sales / 30.417 * currentStore.leadTimeDays) * 10) / 10} units
               <br />
-              Safety Buffer = 2.054 × √(Lead Time Variance + Sales Variance)
+              Safety Buffer (SS) = 2.054 × √(Lead Time Variance + Sales Variance) = {safetyStock} units
+              <br />
+              Reorder Point (ROP) = Lead-Time Demand + Safety Buffer = {rop} units
             </div>
           )}
 
-          <div className="grid-cols-2 gap-4">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem' }}>
             <div style={{ background: 'var(--bg-surface-subtle)', padding: '0.75rem', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Reorder When Stock Reaches</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '0.15rem' }}>
-                {rop} <span style={{ fontSize: '0.8125rem', fontWeight: 400, color: 'var(--text-muted)' }}>units</span>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Lead-Time Demand</div>
+              <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '0.15rem' }}>
+                {Math.round((month1Sales / 30.417 * currentStore.leadTimeDays) * 10) / 10} <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)' }}>units</span>
               </div>
             </div>
 
             <div style={{ background: 'var(--bg-surface-subtle)', padding: '0.75rem', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Emergency Safety Buffer</div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#047857', marginTop: '0.15rem' }}>
-                {safetyStock} <span style={{ fontSize: '0.8125rem', fontWeight: 400, color: 'var(--text-muted)' }}>units</span>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Safety Buffer</div>
+              <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#047857', marginTop: '0.15rem' }}>
+                {safetyStock} <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)' }}>units</span>
+              </div>
+            </div>
+
+            <div style={{ background: 'var(--bg-surface-subtle)', padding: '0.75rem', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Reorder Point (ROP)</div>
+              <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--accent-blue)', marginTop: '0.15rem' }}>
+                {rop} <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)' }}>units</span>
               </div>
             </div>
           </div>
@@ -323,7 +366,7 @@ export const ForecasterPage: React.FC = () => {
             color: 'var(--status-info-text)',
             lineHeight: 1.4,
           }}>
-            <strong>Recommendation:</strong> When on-hand inventory drops to <strong>{rop} units</strong>, place an order with your supplier to prevent stockout while order is in transit ({currentStore.leadTimeDays} days).
+            <strong>Replenishment Rule:</strong> When on-hand inventory drops to or below <strong>{rop} units</strong>, place an order of at least <strong>{Math.ceil(rop)} units</strong> to cover transit demand ({currentStore.leadTimeDays} days) and keep safety buffer intact.
           </div>
         </div>
 

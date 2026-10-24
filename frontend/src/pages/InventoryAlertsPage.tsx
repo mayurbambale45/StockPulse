@@ -4,7 +4,7 @@ import {
   calculateDynamicROP,
   classifyStockAlert,
 } from '../services/api';
-import type { InventoryItem } from '../types';
+import type { InventoryItem, AlertTier } from '../types';
 import { POModal } from '../components/POModal';
 import {
   Sliders,
@@ -21,6 +21,9 @@ export const InventoryAlertsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedPOItem, setSelectedPOItem] = useState<InventoryItem | null>(null);
   const [showSimulator, setShowSimulator] = useState<boolean>(false);
+  const [sortByUrgency, setSortByUrgency] = useState<boolean>(true);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const pageSize = 8;
 
   // Live Simulator state
   const [simDemand, setSimDemand] = useState<number>(30);
@@ -44,6 +47,7 @@ export const InventoryAlertsPage: React.FC = () => {
             status: tier,
             triggeredAction: action,
             recommendedOrder: 0,
+            orderCalculationExplanation: `Replenished +${quantity} units via simulated PO. Stock is now healthy.`,
           };
         }
         return it;
@@ -51,15 +55,24 @@ export const InventoryAlertsPage: React.FC = () => {
     );
   };
 
-  const filteredItems = items.filter((item) => {
-    const matchesCat = selectedCategory === 'ALL' || item.category === selectedCategory;
-    const matchesTier = selectedTier === 'ALL' || item.status === selectedTier;
-    const matchesSearch =
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.productId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.storeId.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCat && matchesTier && matchesSearch;
-  });
+  const filteredItems = items
+    .filter((item) => {
+      const matchesCat = selectedCategory === 'ALL' || item.category === selectedCategory;
+      const matchesTier = selectedTier === 'ALL' || item.status === selectedTier;
+      const matchesSearch =
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.productId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.storeId.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesCat && matchesTier && matchesSearch;
+    })
+    .sort((a, b) => {
+      if (!sortByUrgency) return 0;
+      const rank: Record<AlertTier, number> = { CRITICAL: 0, WARNING: 1, OVERSTOCK: 2, OK: 3 };
+      return rank[a.status] - rank[b.status];
+    });
+
+  const totalPages = Math.ceil(filteredItems.length / pageSize) || 1;
+  const paginatedItems = filteredItems.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const criticalCount = items.filter((i) => i.status === 'CRITICAL').length;
   const warningCount = items.filter((i) => i.status === 'WARNING').length;
@@ -259,11 +272,24 @@ export const InventoryAlertsPage: React.FC = () => {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => {
+                setSortByUrgency(!sortByUrgency);
+                setCurrentPage(1);
+              }}
+              className="btn btn-secondary btn-sm"
+              title="Toggle sorting by risk severity"
+            >
+              {sortByUrgency ? 'Sorted: Highest Urgency First' : 'Sort: Default'}
+            </button>
             <select
               className="form-select"
               style={{ fontSize: '0.8125rem', height: '34px' }}
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
+              onChange={(e) => {
+                setSelectedCategory(e.target.value);
+                setCurrentPage(1);
+              }}
             >
               <option value="ALL">All Departments</option>
               <option value="FOODS">Groceries</option>
@@ -278,28 +304,29 @@ export const InventoryAlertsPage: React.FC = () => {
 
         {/* Table */}
         <div className="table-container">
-          <table className="data-table" style={{ minWidth: '700px' }}>
+          <table className="data-table" style={{ minWidth: '850px' }}>
             <thead>
               <tr>
                 <th>Product</th>
                 <th>Store</th>
                 <th>Current Stock</th>
-                <th>Order Threshold</th>
+                <th>Reorder Threshold</th>
+                <th>Lead-Time Demand</th>
                 <th>Safety Buffer</th>
                 <th>Status</th>
-                <th>Recommended Action</th>
+                <th>Order Calculation & Action</th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody>
-              {filteredItems.length === 0 ? (
+              {paginatedItems.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                  <td colSpan={9} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
                     No products match the selected filter.
                   </td>
                 </tr>
               ) : (
-                filteredItems.map((item) => (
+                paginatedItems.map((item) => (
                   <tr key={item.id}>
                     <td>
                       <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{item.name}</div>
@@ -319,14 +346,20 @@ export const InventoryAlertsPage: React.FC = () => {
                       </span>
                     </td>
                     <td style={{ fontWeight: 600 }}>{item.rop}</td>
+                    <td style={{ color: 'var(--text-secondary)' }}>{item.leadTimeDemand}</td>
                     <td style={{ color: 'var(--text-muted)' }}>{item.safetyStock}</td>
                     <td>
                       <span className={`badge badge-${item.status.toLowerCase()}`}>
                         {item.status === 'CRITICAL' ? 'Urgent' : item.status === 'WARNING' ? 'Low' : item.status === 'OK' ? 'Healthy' : 'Overstock'}
                       </span>
                     </td>
-                    <td style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', maxWidth: '240px' }}>
-                      {item.triggeredAction}
+                    <td style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', maxWidth: '280px' }}>
+                      <div style={{ fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.1rem' }}>
+                        {item.recommendedOrder > 0 ? `Order ${item.recommendedOrder} units` : 'No order needed'}
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                        {item.orderCalculationExplanation}
+                      </div>
                     </td>
                     <td>
                       {item.currentStock < item.rop ? (
@@ -350,6 +383,39 @@ export const InventoryAlertsPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: '0.85rem',
+            paddingTop: '0.65rem',
+            borderTop: '1px solid var(--border-subtle)',
+            fontSize: '0.8125rem',
+          }}>
+            <span style={{ color: 'var(--text-muted)' }}>
+              Page {currentPage} of {totalPages} ({filteredItems.length} total SKUs)
+            </span>
+            <div style={{ display: 'flex', gap: '0.4rem' }}>
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className="btn btn-secondary btn-sm"
+              >
+                Previous
+              </button>
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                className="btn btn-secondary btn-sm"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Simple Order Modal */}

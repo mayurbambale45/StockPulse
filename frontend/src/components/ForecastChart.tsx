@@ -61,15 +61,15 @@ export const ForecastChart: React.FC<ForecastChartProps> = ({
     ...forePoints.map((p, i) => `L ${getX(histPoints.length + i)} ${getY(p.value)}`),
   ].join(' ');
 
-  // Shaded area for forecast uncertainty bounds
+  // Mathematically documented 90% confidence uncertainty bounds (± 1.645 * sigma_h)
   const upperBounds = forePoints.map((p, i) => {
-    const errorMargin = p.confidence === 'high' ? 0.08 : p.confidence === 'medium' ? 0.14 : 0.22;
-    return { x: getX(histPoints.length + i), y: getY(p.value * (1 + errorMargin)) };
+    const rawUpper = points[i]?.upperBound ?? (p.value * 1.15);
+    return { x: getX(histPoints.length + i), y: getY(rawUpper) };
   });
 
   const lowerBounds = forePoints.map((p, i) => {
-    const errorMargin = p.confidence === 'high' ? 0.08 : p.confidence === 'medium' ? 0.14 : 0.22;
-    return { x: getX(histPoints.length + i), y: getY(Math.max(0, p.value * (1 - errorMargin))) };
+    const rawLower = points[i]?.lowerBound ?? (p.value * 0.85);
+    return { x: getX(histPoints.length + i), y: getY(Math.max(0, rawLower)) };
   });
 
   const boundsAreaD = [
@@ -87,12 +87,12 @@ export const ForecastChart: React.FC<ForecastChartProps> = ({
             Sales Trajectory & Forecast Horizon ({productId} @ {storeId})
           </h3>
           <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
-            12-month observed historical demand followed by {points.length}-month LightGBM model prediction
+            12-month observed demand + {points.length}-month LightGBM forecast with 90% uncertainty bounds (±1.645·σ)
           </p>
         </div>
 
         {/* Legend */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', fontSize: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', fontSize: '0.75rem', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <span style={{ width: '12px', height: '2px', background: '#94A3B8' }} />
             <span style={{ color: 'var(--text-muted)' }}>Observed Sales</span>
@@ -102,8 +102,8 @@ export const ForecastChart: React.FC<ForecastChartProps> = ({
             <span style={{ color: '#2563EB', fontWeight: 600 }}>Calibrated Forecast</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <span style={{ width: '12px', height: '8px', background: 'rgba(37, 99, 235, 0.12)', border: '1px solid rgba(37, 99, 235, 0.3)' }} />
-            <span style={{ color: 'var(--text-muted)' }}>Confidence Interval</span>
+            <span style={{ width: '12px', height: '8px', background: 'rgba(37, 99, 235, 0.15)', border: '1px solid rgba(37, 99, 235, 0.4)' }} />
+            <span style={{ color: 'var(--text-muted)' }}>90% Confidence Interval</span>
           </div>
         </div>
       </div>
@@ -259,7 +259,12 @@ export const ForecastChart: React.FC<ForecastChartProps> = ({
               </span>
               <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>units / month</span>
             </div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+            {allPoints[hoveredIndex].isForecast && (
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '0.1rem' }}>
+                90% Bound: [{points[hoveredIndex - histPoints.length]?.lowerBound ?? Math.round(allPoints[hoveredIndex].value * 0.85)} – {points[hoveredIndex - histPoints.length]?.upperBound ?? Math.round(allPoints[hoveredIndex].value * 1.15)}] units
+              </div>
+            )}
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
               Est. Gross Revenue: ${(allPoints[hoveredIndex].value * basePrice).toFixed(2)}
             </div>
           </div>

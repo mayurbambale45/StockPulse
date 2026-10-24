@@ -94,14 +94,28 @@ IEA*1*000000001~`;
           <div style={{ padding: '1.75rem 1rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.65rem' }}>
             <CheckCircle2 size={36} color="#059669" />
             <h4 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-main)' }}>
-              Order Placed Successfully
+              Simulated Purchase Order Confirmed
             </h4>
-            <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
-              Order {poNumber} has been transmitted to warehouse. Delivery in {item.leadTimeDays} days.
+            <span className="badge badge-warning" style={{ fontSize: '0.7rem' }}>
+              Simulated Demo Order
+            </span>
+            <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', maxWidth: '380px' }}>
+              Replenishment PO {poNumber} has been logged in demo inventory. {orderQty} units will arrive in simulated transit ({item.leadTimeDays} days).
             </p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+            <div style={{
+              background: 'var(--status-warning-bg)',
+              border: '1px solid var(--status-warning-border)',
+              borderRadius: '4px',
+              padding: '0.45rem 0.65rem',
+              fontSize: '0.72rem',
+              color: 'var(--status-warning-text)',
+            }}>
+              <strong>Demonstration Mode:</strong> Submitting this form tests the replenishment workflow and updates local stock without dispatching live commercial EDI transmissions.
+            </div>
+
             {/* Summary Details */}
             <div style={{
               background: 'var(--bg-surface-subtle)',
