@@ -21,9 +21,9 @@ export const InventoryAlertsPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedPOItem, setSelectedPOItem] = useState<InventoryItem | null>(null);
   const [showSimulator, setShowSimulator] = useState<boolean>(false);
-  const [sortByUrgency, setSortByUrgency] = useState<boolean>(true);
+  const [sortByUrgency, setSortByUrgency] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const pageSize = 8;
+  const pageSize = 12;
 
   // Live Simulator state
   const [simDemand, setSimDemand] = useState<number>(30);
@@ -277,10 +277,10 @@ export const InventoryAlertsPage: React.FC = () => {
                 setSortByUrgency(!sortByUrgency);
                 setCurrentPage(1);
               }}
-              className="btn btn-secondary btn-sm"
-              title="Toggle sorting by risk severity"
+              className={`btn btn-sm ${sortByUrgency ? 'btn-primary' : 'btn-secondary'}`}
+              title="Click to toggle sorting by risk severity"
             >
-              {sortByUrgency ? 'Sorted: Highest Urgency First' : 'Sort: Default'}
+              {sortByUrgency ? '✓ Sorted: Urgent First' : 'Sort: Product Order'}
             </button>
             <select
               className="form-select"
