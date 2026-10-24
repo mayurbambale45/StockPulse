@@ -71,8 +71,9 @@ export const InventoryAlertsPage: React.FC = () => {
       return rank[a.status] - rank[b.status];
     });
 
-  const totalPages = Math.ceil(filteredItems.length / pageSize) || 1;
-  const paginatedItems = filteredItems.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+  const paginatedItems = filteredItems.slice((safeCurrentPage - 1) * pageSize, safeCurrentPage * pageSize);
 
   const criticalCount = items.filter((i) => i.status === 'CRITICAL').length;
   const warningCount = items.filter((i) => i.status === 'WARNING').length;
@@ -118,7 +119,10 @@ export const InventoryAlertsPage: React.FC = () => {
         ].map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setSelectedTier(tab.id)}
+            onClick={() => {
+              setSelectedTier(tab.id);
+              setCurrentPage(1);
+            }}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -266,7 +270,10 @@ export const InventoryAlertsPage: React.FC = () => {
                 className="form-input"
                 style={{ paddingLeft: '28px', fontSize: '0.8125rem', width: '100%', height: '34px' }}
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
               />
             </div>
           </div>
@@ -396,18 +403,18 @@ export const InventoryAlertsPage: React.FC = () => {
             fontSize: '0.8125rem',
           }}>
             <span style={{ color: 'var(--text-muted)' }}>
-              Page {currentPage} of {totalPages} ({filteredItems.length} total SKUs)
+              Page {safeCurrentPage} of {totalPages} ({filteredItems.length} total SKUs)
             </span>
             <div style={{ display: 'flex', gap: '0.4rem' }}>
               <button
-                disabled={currentPage === 1}
+                disabled={safeCurrentPage === 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 className="btn btn-secondary btn-sm"
               >
                 Previous
               </button>
               <button
-                disabled={currentPage === totalPages}
+                disabled={safeCurrentPage === totalPages}
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 className="btn btn-secondary btn-sm"
               >
