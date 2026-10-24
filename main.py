@@ -66,14 +66,38 @@ def _create_mock_state():
                 },
             }
 
-    # Dummy model entries that return realistic sales predictions matching Table 10.1
+    # Dynamic tree model that computes predictions from series history and features
     class MockTreeModel:
         def __init__(self, horizon):
             self.horizon = horizon
+
         def predict(self, X):
-            # return log1p of estimated demand
-            base = np.log1p(20.0 + np.sin(self.horizon) * 3.0)
-            return np.array([base] * len(X))
+            # X is a DataFrame with FEATURES
+            preds = []
+            for _, row in X.iterrows():
+                # Base demand driven by rolling mean and lag-1 sales
+                roll3 = float(row.get("sales_roll_mean_3", 20.0))
+                lag1 = float(row.get("sales_lag_1", 20.0))
+                price = float(row.get("sell_price", 3.5))
+
+                # Category scale
+                dept = str(row.get("dept_id", ""))
+                cat_scale = 1.2 if "FOODS" in dept else (0.85 if "HOUSEHOLD" in dept else 0.55)
+
+                # Seasonal wave
+                month = int(row.get("month", 7))
+                seasonal = 1.0 + 0.22 * np.sin(2 * np.pi * (month - 3) / 12)
+
+                # Price elasticity (-1.4x)
+                price_factor = np.clip(1.0 - (price - 4.0) * 0.08, 0.6, 1.4)
+
+                # Forecast horizon decay
+                h_factor = 1.0 - (self.horizon * 0.015)
+
+                expected_sales = max(1.0, (0.6 * roll3 + 0.4 * lag1) * cat_scale * seasonal * price_factor * h_factor)
+                preds.append(np.log1p(expected_sales))
+
+            return np.array(preds, dtype=np.float32)
 
     correction_factors = {
         1: 1.2841, 2: 1.2790, 3: 1.2652, 4: 1.2580,
