@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CATALOG_PRODUCTS, STORES } from '../services/api';
+import { CATALOG_PRODUCTS, STORES, API_BASE } from '../services/api';
 import { Play, CheckCircle2 } from 'lucide-react';
 
 interface BatchRow {
@@ -24,7 +24,7 @@ export const BatchForecastPage: React.FC = () => {
     setIsRunning(true);
 
     try {
-      const res = await fetch('http://localhost:8000/predict/batch', {
+      const res = await fetch(`${API_BASE}/predict/batch`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ items: batchItems }),

@@ -7,7 +7,7 @@ import type {
   StoreMetadata,
 } from '../types';
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
+export const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000';
 
 export const STORES: StoreMetadata[] = [
   { id: 'CA_1', name: 'Supercenter #1042 (Los Angeles)', state: 'CA', cluster: 'California Central', hubTransitHours: 24, leadTimeDays: 7 },

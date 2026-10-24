@@ -7,7 +7,7 @@ import {
   ArrowRight,
   Warehouse,
 } from 'lucide-react';
-import { HORIZON_BENCHMARKS } from '../services/api';
+import { HORIZON_BENCHMARKS, getInitialInventoryItems } from '../services/api';
 
 interface OverviewPageProps {
   onNavigate: (tab: string) => void;
@@ -16,6 +16,9 @@ interface OverviewPageProps {
 
 export const OverviewPage: React.FC<OverviewPageProps> = ({ onNavigate }) => {
   const [showMoreDetails, setShowMoreDetails] = useState<boolean>(false);
+  const urgentCount = React.useMemo(() => {
+    return getInitialInventoryItems().filter((item) => item.status === 'CRITICAL').length;
+  }, []);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', minWidth: 0 }}>
@@ -58,7 +61,7 @@ export const OverviewPage: React.FC<OverviewPageProps> = ({ onNavigate }) => {
             URGENT ACTION
           </span>
           <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--status-critical-text)' }}>
-            8 SKUs are currently below Reorder Point (critical stockout risk)
+            {urgentCount} SKUs are currently below Reorder Point (critical stockout risk)
           </span>
         </div>
         <button
